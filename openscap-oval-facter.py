@@ -53,7 +53,7 @@ def main(vardir, factfile, defurl, deffixes=(), chsevs=(), rebootpkgs=()):
     while tries < 4:
         logger.info('Downloading %s (try %s)' % (defurl, tries))
         try:
-            r = requests.get(defurl, stream=True)
+            r = requests.get(defurl)
             with open(local_defs, 'w') as fh:
                 for chunk in r.iter_content(chunk_size=8092):
                     if chunk:
@@ -125,7 +125,7 @@ def main(vardir, factfile, defurl, deffixes=(), chsevs=(), rebootpkgs=()):
                  'severity': {
                    'cve': {} ,
                    'rhsa': {} 
-                 },
+                },
                }
 
         for sddelt in res.findall('res:system/res:definitions/res:definition[@result="true"]', ns):
