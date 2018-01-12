@@ -5,14 +5,34 @@ This is a small utility to translate openscap OVAL policy analysis
 results into a YAML file of puppet facts that can be queried via the
 puppet dashboard or via an orchestration tool (like MCO).
 
+Changes from original script
+----------------------------
+It extracts and count CVE severity from RHSA (a RHSA can have multive CVE)
+More tweaks
+
 Requirements
 ------------
-Requires the following packages to be installed:
 
-- openscap-scanner
-- python-requests
-- python-lxml
-- PyYAML
+- EL7
+
+  Requires the following packages to be installed:
+
+  - openscap-scanner
+  - python-requests
+  - python-lxml
+  - PyYAML
+
+- EL6
+
+  - scl install rh-python27
+  - scl enable python27 'pip install lxml requests pyyaml'
+
+- Debian 7 (use script from branch debian7), 8, 9 & Ubuntu 14.04, 16.04
+
+  - python-yaml
+  - python-requests
+  - python-lxml
+  - libopenscap8 (Use or build package from my repository for Debian 7, 8 & Ubuntu 14.04)
 
 Example usage
 -------------

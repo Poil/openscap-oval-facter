@@ -1,0 +1,8 @@
+---
+# You can tweak some oval definitions in order to track custom
+# packages, or even to make the RHEL7 oval file to work on a
+# CentOS system (as the example below does).
+definition_fixes:
+  oval:com.ubuntu.trusty:ste:20179605000: linux-image-<%= scope['kernelrelease'] %>
+  oval:com.ubuntu.trusty:ste:20179605080: linux-image-<%= scope['kernelrelease'] %>
+

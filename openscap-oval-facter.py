@@ -114,24 +114,30 @@ def main(vardir, factfile, defurl, deffixes=(), chsevs=(), rebootpkgs=()):
         sys.exit(0)
 
     logger.info('Parsing %s' % resfile)
-
+    from pprint import pprint
     try:
         doc = etree.parse(resfile).getroot()
-
         res = doc.find('res:results', ns)
         defs = doc.find('def:oval_definitions', ns)
 
-        oval = {'rhsa': {},
-                'cve' : {},
-                'severity': {},
-                }
+        oval = { 'rhsa': {},
+                 'cve' : {},
+                 'severity': {
+                   'cve': {} ,
+                   'rhsa': {} 
+                 },
+               }
 
         for sddelt in res.findall('res:system/res:definitions/res:definition[@result="true"]', ns):
             defid = sddelt.get('definition_id')
             defelt = defs.find('def:definitions/def:definition[@id="%s"]' % defid, ns)
             metaelt = defelt.find('def:metadata', ns)
             title = metaelt.find('def:title', ns).text
-            severity = metaelt.find('def:advisory/def:severity', ns).text.lower()
+
+            if metaelt.find('def:advisory/def:severity', ns) != None:
+                severity = metaelt.find('def:advisory/def:severity', ns).text.lower()
+            else:
+                severity = 'unknown'
 
             for refelt in metaelt.findall('def:reference', ns):
                 refid  = refelt.get('ref_id')
@@ -144,21 +150,25 @@ def main(vardir, factfile, defurl, deffixes=(), chsevs=(), rebootpkgs=()):
 
                 source = refelt.get('source').lower()
                 if refid not in oval[source]:
-                        oval[source][refid] = refurl
-
-            if severity in ('ignore', 'none'):
-                logger.info('Ignoring: %s' % title)
-
-            else:
-                if severity not in oval['severity']:
-                    oval['severity'][severity] = {
-                        'count': 0,
-                        'titles': [],
-                    }
-
-                logger.info('Found: %s' % title)
-                oval['severity'][severity]['count'] += 1
-                oval['severity'][severity]['titles'].append(title)
+                    logger.info('Found %s Reference : %s' % (title, refid))
+                    oval[source][refid] = refurl
+                    # Count RHSA CVE references
+                    if refid.startswith('CVE'):
+                        if severity not in oval['severity']['cve']:
+                            oval['severity']['cve'][severity] = {
+                                'count': 0,
+                                'titles': [],
+                            }
+                        oval['severity']['cve'][severity]['count'] += 1
+                        oval['severity']['cve'][severity]['titles'].append(refid)
+                    elif refid.startswith('RHSA'):
+                        if severity not in oval['severity']['rhsa']:
+                            oval['severity']['rhsa'][severity] = {
+                                'count': 0,
+                                'titles': [],
+                            }
+                        oval['severity']['rhsa'][severity]['count'] += 1
+                        oval['severity']['rhsa'][severity]['titles'].append(refid)
 
     except Exception as ex:
         logger.info('Was not able to parse %s' % resfile)
@@ -272,3 +282,4 @@ if __name__ == '__main__':
             sys.exit(0)
 
     main(args.vardir, args.factfile, args.defurl, deffixes, chsevs, rebootpkgs)
+
